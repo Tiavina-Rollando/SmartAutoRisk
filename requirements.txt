@@ -1,0 +1,6 @@
+Python 3.13.0
+sqlalchemy
+alembic
+mysql-connector-python
+Laragon to simplify launching SQLServer 
+alembic.ini clear 3307
