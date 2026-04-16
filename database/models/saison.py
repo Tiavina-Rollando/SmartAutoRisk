@@ -8,12 +8,12 @@ class Saison(Base):
     id = Column(BigInteger, primary_key=True)
     mois = Column(SmallInteger, nullable=False)
     periode = Column(
-        Enum("calme", "fête", "vacance", name="periode_enum"),
-        default="calme"
+        Enum("Calme", "Fête", "Vacance", name="periode_enum"),
+        default="Calme"
     )
     type = Column(
-        Enum("sec", "pluvieux", name="type_saison_enum"),
-        default="sec"
+        Enum("Sec", "Pluvieux", name="type_saison_enum"),
+        default="Sec"
     )
 
     risques = relationship("HistoriqueNiveauRisk", back_populates="saison")

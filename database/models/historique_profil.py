@@ -6,15 +6,15 @@ class HistoriqueProfil(Base):
     __tablename__ = "historique_profils"
 
     id = Column(BigInteger, primary_key=True)
-    vehicule_id = Column(BigInteger, ForeignKey("vehicules.id"))
+    proprietaire_id = Column(BigInteger, ForeignKey("proprietaires.id"))
     date_evaluation = Column(Date, nullable=False)
     profil = Column(
-        Enum("prudent", "normal", "risqué", name="profil_enum"),
-        default="normal"
+        Enum("Prudent", "Normal", "Risqué", name="profil_enum"),
+        default="Normal"
     )
     source = Column(
         Enum("règle", "RNA", name="source_profil_enum"),
         default="règle"
     )
 
-    vehicule = relationship("Vehicule", back_populates="profils")
+    proprietaire = relationship("Proprietaire", back_populates="profils")

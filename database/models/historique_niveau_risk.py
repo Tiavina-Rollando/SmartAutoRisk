@@ -9,8 +9,8 @@ class HistoriqueNiveauRisk(Base):
     vehicule_id = Column(BigInteger, ForeignKey("vehicules.id"))
     saison_id = Column(BigInteger, ForeignKey("saisons.id"))
     niveau_risk = Column(
-        Enum("faible", "moyen", "élevé", name="niveau_risk_enum"),
-        default="moyen"
+        Enum("Faible", "Moyen", "Élevé", name="niveau_risk_enum"),
+        default="Moyen"
     )
     source = Column(
         Enum("RNA", "règle", "PS", name="source_risk_enum"),
