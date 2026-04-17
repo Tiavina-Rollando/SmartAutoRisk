@@ -19,8 +19,15 @@ def session_scope():
 def get_owner(owner_id):
     session = get_session()
 
-    owner = session.get(Proprietaire, owner_id)
-
+    owner = (
+        session.query(Proprietaire)
+        .options(
+            joinedload(Proprietaire.profils),
+            joinedload(Proprietaire.vehicules)
+            )
+        .filter(Proprietaire.id == owner_id)
+        .first()
+    )
     session.close()
 
     return owner
@@ -51,6 +58,7 @@ def get_vehicle(vehicle_id):
 
     session.close()
     return vehicle
+
 def get_all_seasons():
     session = get_session()
 
@@ -71,3 +79,29 @@ def get_niveau_risque(vehicle_id):
             .filter(HistoriqueNiveauRisk.vehicule_id == vehicle_id)\
             .all()
     
+def get_vehicle_type(type):
+    session = get_session()
+
+    vehicle_type = session.query(Vehicule).filter(Vehicule.type == type).first()
+
+    session.close()
+
+    return vehicle_type
+
+def get_vehicle_usage(usage):
+    session = get_session()
+
+    vehicle_usage = session.query(Vehicule).filter(Vehicule.usage == usage).first()
+
+    session.close()
+
+    return vehicle_usage
+
+def get_all_owner():
+    session = get_session()
+
+    owners = session.query(Proprietaire).options(joinedload(Proprietaire.vehicules),joinedload(Proprietaire.profils)).all()
+
+    session.close()
+
+    return owners

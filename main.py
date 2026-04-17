@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+from datetime import datetime
+import locale
+
 import database.models.all_models as models
 
 # ===== IMPORT TES PAGES =====
@@ -33,7 +36,17 @@ class App:
             bg="#2c3e50",
             fg="white",
             font=("Arial", 20, "bold")
-        ).pack(pady=30)
+        ).pack(pady=20)
+
+        # ================= DATE DANS SIDEBAR =================
+        self.date_label = tk.Label(
+            self.menu_frame,
+            text="",
+            bg="#2c3e50",
+            fg="#ecf0f1",
+            font=("Arial", 11, "bold")
+        )
+        self.date_label.pack(pady=10)
 
         # ---------- CONTENU DROITE ----------
         self.container = tk.Frame(self.main_frame)
@@ -42,7 +55,7 @@ class App:
         # ---------- PAGES ----------
         self.frames = {}
 
-        for Page in (Dashboard, Vehicules, Accidents, Prediction):
+        for Page in (Dashboard, Vehicules, Prediction):
             frame = Page(self.container)
             self.frames[Page] = frame
             frame.place(relwidth=1, relheight=1)
@@ -54,13 +67,29 @@ class App:
         # Page par défaut
         self.show_frame(Dashboard)
 
+        # ================= START CLOCK =================
+        try:
+            locale.setlocale(locale.LC_TIME, "fr_FR")
+        except:
+            locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+            
+        self.update_date()
+
+    # ================= DATE UPDATE =================
+    def update_date(self):
+        now = datetime.now()
+        formatted = now.strftime("%A %d %B %Y - %H:%M:%S")
+        self.date_label.config(text=formatted)
+
+        # mise à jour chaque seconde
+        self.root.after(1000, self.update_date)
+
     # ================= SIDEBAR =================
     def create_sidebar(self):
 
         menu_buttons = [
             ("Tableau de bord", Dashboard),
             ("Véhicules", Vehicules),
-            ("Accidents", Accidents),
             ("Prédiction", Prediction)
         ]
 
@@ -104,7 +133,5 @@ class App:
 if __name__ == "__main__":
 
     root = tk.Tk()
-
     app = App(root)
-
     root.mainloop()
