@@ -1,35 +1,34 @@
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+
 from controllers.vehicule_controller import *
 from services.recuperation import get_vehicle
 
 
 # =====================================================
-# CARD MODERNE REUTILISABLE
+# CARD REUTILISABLE RESPONSIVE
 # =====================================================
-def create_card(parent, title, height=130):
+def create_card(parent, title):
+    frame = tk.Frame(parent, bg="white", bd=1, relief="solid")
 
-    card = tk.Frame(parent, bg="#ffffff", height=height, width=600)
-    card.pack(fill="x", pady=10, padx=10)
-    card.pack_propagate(False)
-
-    tk.Label(
-        card,
+    header = tk.Label(
+        frame,
         text=title,
-        font=("Segoe UI", 13, "bold"),
+        font=("Segoe UI", 12, "bold"),
         fg="#2e6de6",
-        bg="#ffffff"
-    ).pack(anchor="center", pady=5)
+        bg="white"
+    )
+    header.pack(fill="x", pady=(5, 2))
 
-    content = tk.Frame(card, bg="#ffffff")
-    content.pack(expand=True)
+    content = tk.Frame(frame, bg="white")
+    content.pack(fill="both", expand=True, padx=5, pady=5)
 
-    return content
+    return frame, content
 
 
 # =====================================================
-# CLASSE DETAIL VEHICULE
+# DETAIL VEHICULE VIEW
 # =====================================================
 class DetailVehiculeView:
 
@@ -37,73 +36,80 @@ class DetailVehiculeView:
 
         self.root = root
         self.immatriculation = immatriculation
-        diag = self.charger_detail(vehicule_id)
-        self.data = charger_detail_vehicule(vehicule_id)
 
-        root.title(f"SmartAutoRisk - Véhicule {immatriculation}")
+        self.data = self.charger_detail(vehicule_id)
+
+        root.title(f"SmartAutoRisk - {immatriculation}")
         root.state("zoomed")
         root.configure(bg="#f2f4f8")
 
-        # =============================
-        # TITRE
-        # =============================
-        tk.Label(
-            root,
-            text=f"Détails véhicule : {immatriculation}",
-            font=("Arial", 24, "bold"),
-            bg="#f2f4f8"
-        ).pack(pady=25)
-
-        # =============================
-        # HEADER
-        # =============================
+        # ================= HEADER =================
         header = tk.Frame(root, bg="#f2f4f8")
         header.pack(fill="x")
 
-        tk.Button(header,
-                  text="Retour",
-                  bg="#2e6de6",
-                  fg="white",
-                  font=("Segoe UI", 11, "bold"),
-                  relief="flat",
-                  command=root.destroy).pack(side="right", padx=20)
+        tk.Label(
+            header,
+            text=f"Véhicule {immatriculation}",
+            font=("Arial", 20, "bold"),
+            bg="#f2f4f8"
+        ).pack(side="left", padx=20, pady=10)
 
-        # =====================================================
-        # BODY DASHBOARD
-        # =====================================================
+        tk.Button(
+            header,
+            text="← Retour",
+            command=root.destroy,
+            bg="#2e6de6",
+            fg="white",
+            font=("Segoe UI", 10, "bold"),
+            padx=15,
+            pady=6,
+            relief="flat",
+            cursor="hand2",
+            activebackground="#1f4fbf",
+            activeforeground="white"
+        ).pack(side="right", padx=20, pady=5)
+
+        # ================= BODY GRID =================
         body = tk.Frame(root, bg="#f2f4f8")
         body.pack(fill="both", expand=True)
 
-        left = tk.Frame(body, bg="#f2f4f8", width=550)
-        left.pack(side="left", fill="y", padx=20)
+        body.grid_columnconfigure(0, weight=1)
+        body.grid_columnconfigure(1, weight=1)
+        body.grid_columnconfigure(2, weight=1)
 
-        middle = tk.Frame(body, bg="#f2f4f8", width=350)
-        middle.pack(side="left", fill="y")
+        body.grid_rowconfigure(0, weight=1)
+        body.grid_rowconfigure(1, weight=1)
 
-        right = tk.Frame(body, bg="#f2f4f8", width=650)
-        right.pack(side="left", fill="y", padx=40)
+        # ================= COLUMNS =================
+        self.left = tk.Frame(body, bg="#f2f4f8")
+        self.middle = tk.Frame(body, bg="#f2f4f8")
+        self.right = tk.Frame(body, bg="#f2f4f8")
 
-        # =============================
-        # GRAPHIQUES
-        # =============================
-        self.create_assurance_card(left,diag)
-        self.create_profil_card(middle,diag)
-        self.create_risque_card(middle,diag)
+        self.left.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.middle.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        self.right.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
 
-        # =============================
-        # TABLES
-        # =============================
-        self.create_proprietaire_card(right)
-        self.create_vehicule_card(right)
-        self.create_accident_card(right)
+        # ================= CARDS =================
+        self.create_assurance_card()
+        # self.create_profil_card()
+        self.create_risque_card()
 
+        self.create_proprietaire_card()
+        self.create_vehicule_card()
+        # self.create_accident_card()
 
+    # =====================================================
+    # DATA
+    # =====================================================
     def charger_detail(self, vehicule_id):
         vehicule = get_vehicle(vehicule_id)
 
         profil_obj = next(iter(vehicule.proprietaire.profils), None)
 
-        data = {
+        return {
+            "marque": vehicule.marque,
+            "modele": vehicule.modele,
+            "cylindre": vehicule.cylindre*1000,
             "puissance": vehicule.puissance,
             "type": vehicule.type,
             "nombre_place": vehicule.nombre_place,
@@ -124,12 +130,8 @@ class DetailVehiculeView:
 
             "risques": [
                 {
-                    "saison": r.saison.type if r.saison else "",
                     "mois": r.saison.mois if r.saison else 0,
-                    "niveau": 1 if r.niveau_risk is "Faible" else 2 if r.niveau_risk is "Moyen" else 3,
-                    "date": r.date_evaluation.strftime("%d/%m/%Y") if r.date_evaluation else "",
-                    "source": r.source,
-                    "commentaire": r.commentaire
+                    "niveau": 1 if r.niveau_risk == "Faible" else 2 if r.niveau_risk == "Moyen" else 3,
                 }
                 for r in (vehicule.risques or [])
             ],
@@ -145,227 +147,205 @@ class DetailVehiculeView:
             ]
         }
 
-        return data
-    
     # =====================================================
     # UTILS
     # =====================================================
+    def int_to_mois(self, m):
+        return ["Jan","Fev","Mar","Avr","Mai","Juin","Juil","Aout","Sep","Oct","Nov","Dec"][m-1] if m else ""
 
-    def int_to_mois(self, mois_int):
-        mois_dict = {
-            1: "Jan",
-            2: "Fev",
-            3: "Mar",
-            4: "Avr",
-            5: "Mai",
-            6: "Juin",
-            7: "Juil",
-            8: "Aout",
-            9: "Sep",
-            10: "Oct",
-            11: "Nov",
-            12: "Dec"
-        }
-        return mois_dict.get(mois_int, "")
-    
     # =====================================================
-    # GRAPH 1 — PRIX ASSURANCE
+    # ASSURANCE
     # =====================================================
-    def create_assurance_card(self, parent, data):
+    def create_assurance_card(self):
 
-        card = tk.Frame(parent, bg="white")
-        card.pack(fill="both", expand=True, pady=20)
+        frame, content = create_card(self.left, "Prix Assurance")
+        frame.pack(fill="both", expand=True, pady=10)
 
-        tk.Label(card,
-                 text="Variation Prix Assurance",
-                 font=("Segoe UI", 14, "bold"),
-                 fg="#2e6de6",
-                 bg="white").pack(pady=10)
+        frais = self.data.get("frais", [])
 
+        mois = [self.int_to_mois(f["mois"]) for f in frais]
+        prix = [f["montant"] for f in frais]
 
-        prices = data.get("frais", [])
-        mois = [self.int_to_mois(f["mois"]) for f in prices] if prices else [""] * 12
-        prix = [f["montant"] for f in prices] if prices else [0] * 12
-
-        fig = Figure(figsize=(4.5, 4.5))
+        fig = Figure()
         ax = fig.add_subplot(111)
-
         ax.plot(mois, prix, marker="o")
-        ax.set_title("Prix assurance par mois")
-        ax.set_ylabel("Montant (Ar)")
 
-        canvas = FigureCanvasTkAgg(fig, master=card)
+        canvas = FigureCanvasTkAgg(fig, master=content)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
 
     # =====================================================
-    # GRAPH 2 — PROFIL IA
+    # PROFIL
     # =====================================================
-    def create_profil_card(self, parent, data):
+    def create_profil_card(self):
 
-        card = tk.Frame(parent, bg="white")
-        card.pack(fill="both", pady=20)
+        frame, content = create_card(self.middle, "Profil")
+        frame.pack(fill="both", expand=True, pady=10)
 
-        tk.Label(
-            card,
-            text="Profil Propriétaire",
-            font=("Segoe UI", 13, "bold"),
-            fg="#2e6de6",
-            bg="white"
-        ).pack(pady=8)
+        profil = self.data["profil_p"]
 
-        # ================= PROFIL =================
-        profil = data.get("profil_p", "N/A")
+        colors = {"Prudent":"#3498db","Normal":"#f1c40f","Risqué":"#e74c3c"}
+
+        canvas = tk.Canvas(content, bg="white", height=200)
+        canvas.pack(fill="both", expand=True)
+
+        canvas.create_oval(50, 30, 150, 130, fill=colors.get(profil, "#95a5a6"))
+        canvas.create_text(100, 80, text=profil, fill="white")
+
+    # =====================================================
+    # RISQUE RESPONSIVE
+    # =====================================================
+    def create_risque_card(self):
+
+        frame, content = create_card(self.middle, "Risque")
+        frame.pack(fill="both", expand=True, pady=10)
+
+        risques = self.data.get("risques", [])
+
+        mois = [self.int_to_mois(r["mois"]) for r in risques]
+        scores = [r["niveau"] for r in risques]
+
+        fig = Figure()
+        ax = fig.add_subplot(111)
+
+        ax.bar(mois, scores)
+        # ✅ Y classification 
+        ax.set_yticks([1, 2, 3]) 
+        ax.set_yticklabels(["Faible", "Moyen", "Élevé"], fontweight="bold")
+
+        canvas = FigureCanvasTkAgg(fig, master=content)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    # =====================================================
+    # TABLES
+    # =====================================================
+    def create_proprietaire_card(self):
+
+        frame, content = create_card(self.right, "Propriétaire")
+        frame.pack(fill="both", expand=True, pady=10)
+
+        # ================= HEADER BADGE =================
+        header = tk.Frame(content, bg="white")
+        header.pack(fill="x", pady=(5, 10))
+
+        profil = self.data["profil_p"]
 
         colors = {
-            "Prudent": "#3498db",   # bleu
-            "Normal": "#f1c40f",    # jaune
-            "Risqué": "#e74c3c"     # rouge
+            "Prudent": "#3498db",
+            "Normal": "#f1c40f",
+            "Risqué": "#e74c3c"
         }
 
-        color = colors.get(profil, "#95a5a6")
+        badge_color = colors.get(profil, "#95a5a6")
 
-        canvas = tk.Canvas(card, width=150, height=150, bg="white", highlightthickness=0)
-        canvas.pack(pady=10)
-
-        # cercle
-        canvas.create_oval(20, 20, 130, 130, fill=color, outline="")
-
-        # texte au centre
-        canvas.create_text(
-            75, 75,
+        badge = tk.Label(
+            header,
             text=profil,
-            fill="white",
-            font=("Segoe UI", 11, "bold")
+            bg=badge_color,
+            fg="white",
+            font=("Segoe UI", 10, "bold"),
+            padx=12,
+            pady=4
         )
+        badge.pack(side="right")
 
-    # =====================================================
-    # GRAPH 3 — RISQUE RNA
-    # =====================================================
-    def create_risque_card(self, parent, data):
-
-        card = tk.Frame(parent, bg="white")
-        card.pack(fill="both", pady=20)
-
-        tk.Label(card,
-                 text="Niveau de Risque",
-                 font=("Segoe UI", 13, "bold"),
-                 fg="#2e6de6",
-                 bg="white").pack(pady=8)
-
-        risques = data.get("risques", [])
-        mois = [self.int_to_mois(r["mois"]) for r in risques] if risques else [""] * 12
-        risque_score = [r["niveau"] for r in risques]
-
-
-        if not risque_score:
-            risque_score = [0] * 12
-
-        fig = Figure(figsize=(4, 3))
-        ax = fig.add_subplot(111)
-
-        # ✅ BAR CHART
-        ax.bar(mois, risque_score)
-
-        # ✅ Y classification
-        ax.set_yticks([1, 2, 3])
-        ax.set_yticklabels(["Faible", "Moyen", "Élevé"], fontsize=8)
-
-        ax.set_xlabel("Année", fontsize=9)
-        ax.set_title("Score de Risque", fontsize=10)
-
-        ax.tick_params(axis='x', labelsize=8)
-
-        canvas = FigureCanvasTkAgg(fig, master=card)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    # =====================================================
-    # PROPRIETAIRE
-    # =====================================================
-    def create_proprietaire_card(self, parent):
-
-        prop = create_card(parent, "Propriétaire")
-
-        headers = ["Nom", "Prénom", "Permis", "Adresse",
-                   "Naissance", "Aptitude"]
-
-        values = [
-            self.data["nom"],
-            self.data["prenom"],
-            self.data["date_permis"],
-            self.data["adresse"],
-            self.data["date_naissance"],
-            self.data["aptitude_conduite"]
+        # ================= INFOS =================
+        infos = [
+            ("Nom", self.data["nom_p"]),
+            ("Prénom", self.data["prenom_p"]),
+            ("Permis", self.data["date_permis_p"]),
+            ("Adresse", self.data["adresse_p"]),
+            ("Naissance", self.data["date_naissance_p"]),
+            ("Aptitude", self.data["aptitude_conduite_p"])
         ]
 
-        for i, h in enumerate(headers):
-            tk.Label(prop, text=h,
-                     font=("Segoe UI", 9, "bold"),
-                     bg="#ffffff").grid(row=0, column=i, padx=8)
+        container = tk.Frame(content, bg="white")
+        container.pack(fill="both", expand=True, padx=10)
 
-        for i, v in enumerate(values):
-            tk.Label(prop, text=v,
-                     bg="#ffffff").grid(row=1, column=i, padx=8)
+        for i, (label, value) in enumerate(infos):
 
-    # =====================================================
-    # VEHICULE
-    # =====================================================
-    def create_vehicule_card(self, parent):
+            tk.Label(
+                container,
+                text=label + " :",
+                font=("Segoe UI", 10, "bold"),
+                bg="white",
+                width=15,
+                anchor="w"
+            ).grid(row=i, column=0, sticky="w", pady=3)
 
-        veh = create_card(parent, "Véhicule")
+            tk.Label(
+                container,
+                text=value,
+                font=("Segoe UI", 10),
+                bg="white",
+                anchor="w"
+            ).grid(row=i, column=1, sticky="w", pady=3)
 
-        headers = ["Puissance", "Type", "Places",
-                   "Usage", "Valeur", "Immatriculation"]
 
-        values = [
-            self.data["puissance"],
-            self.data["type"],
-            self.data["nombre_place"],
-            self.data["usage"],
-            self.data["valeur"],
-            self.data["immatriculation"]
+    def create_vehicule_card(self):
+
+        frame, content = create_card(self.right, "Véhicule")
+        frame.pack(fill="both", expand=True, pady=10)
+
+        infos = [
+            ("Marque", self.data["marque"]),
+            ("Modèle", self.data["modele"]),
+            ("Cylindre", str(self.data["cylindre"]) + " cc"),
+            ("Puissance", str(self.data["puissance"]) + " CV"),
+            ("Type", self.data["type"]),
+            ("Places", str(self.data["nombre_place"])),
+            ("Usage", self.data["usage"]),
+            ("Valeur", str(self.data["valeur"]) + " MGA"),
+            ("Immatriculation", self.data["immatriculation"])
         ]
 
-        for i, h in enumerate(headers):
-            tk.Label(veh, text=h,
-                     font=("Segoe UI", 9, "bold"),
-                     bg="#ffffff").grid(row=0, column=i, padx=8)
+        container = tk.Frame(content, bg="white")
+        container.pack(fill="both", expand=True, padx=10, pady=5)
 
-        for i, v in enumerate(values):
-            tk.Label(veh, text=v,
-                     bg="#ffffff").grid(row=1, column=i, padx=8)
+        for i, (label, value) in enumerate(infos):
 
-    # =====================================================
-    # ACCIDENTS SQL
-    # =====================================================
-    def create_accident_card(self, parent):
+            tk.Label(
+                container,
+                text=label + " :",
+                font=("Segoe UI", 10, "bold"),
+                bg="white",
+                width=15,
+                anchor="w"
+            ).grid(row=i, column=0, sticky="w", pady=2)
 
-        acc = create_card(parent, "Historique Accidents", height=170)
+            tk.Label(
+                container,
+                text=value,
+                font=("Segoe UI", 10),
+                bg="white",
+                anchor="w"
+            ).grid(row=i, column=1, sticky="w", pady=2)
 
-        headers = ["Date", "Lieu", "Gravité",
-                   "Type", "Dégât", "Rôle"]
+    def create_accident_card(self):
+
+        frame, content = create_card(self.right, "Historique Accidents")
+        frame.pack(fill="both", expand=True, pady=10)
+
+        headers = ["Date", "Lieu", "Gravité", "Type", "Dégât", "Rôle"]
 
         accidents = charger_accidents_vehicule(self.immatriculation)
 
+        table = tk.Frame(content, bg="white")
+        table.pack(fill="both", expand=True)
+
         for i, h in enumerate(headers):
-            tk.Label(acc,
-                     text=h,
-                     font=("Segoe UI", 9, "bold"),
-                     bg="#ffffff").grid(row=0, column=i, padx=8)
+            tk.Label(table, text=h, font=("Segoe UI", 9, "bold"), bg="white").grid(row=0, column=i, padx=5)
 
-        for r, accident in enumerate(accidents):
-
+        for r, a in enumerate(accidents):
             values = [
-                accident["date"].strftime("%d/%m/%Y") if accident["date"] else "",
-                accident["lieu"],
-                accident["gravite"].capitalize(),
-                accident["type"].capitalize(),
-                accident["degat"].capitalize(),
-                accident["role"].capitalize()
+                a["date"].strftime("%d/%m/%Y") if a["date"] else "",
+                a["lieu"],
+                a["gravite"],
+                a["type"],
+                a["degat"],
+                a["role"]
             ]
 
-            for c, val in enumerate(values):
-                tk.Label(acc,
-                         text=val,
-                         bg="#ffffff").grid(row=r+1, column=c, padx=8)
+            for c, v in enumerate(values):
+                tk.Label(table, text=v, bg="white").grid(row=r+1, column=c, padx=5)

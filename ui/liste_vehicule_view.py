@@ -11,6 +11,7 @@ class ListeVehiculeView(tk.Frame):
 
     def __init__(self, parent):
         super().__init__(parent)
+
         # ================= STYLE =================
         style = ttk.Style()
         style.theme_use("clam")
@@ -44,10 +45,12 @@ class ListeVehiculeView(tk.Frame):
         search = tk.Frame(card, bg="white")
         search.pack(expand=True)
 
+        # Labels
         tk.Label(search, text="Marque", bg="white").grid(row=0, column=0)
         tk.Label(search, text="Modele", bg="white").grid(row=0, column=1)
         tk.Label(search, text="Année", bg="white").grid(row=0, column=2)
 
+        # Combobox
         self.marque_combo = ttk.Combobox(search, width=25)
         self.marque_combo.grid(row=1, column=0, padx=20)
 
@@ -57,20 +60,23 @@ class ListeVehiculeView(tk.Frame):
         self.annee_combo = ttk.Combobox(search, width=25)
         self.annee_combo.grid(row=1, column=2, padx=20)
 
+        # Events (un seul moteur)
+        self.marque_combo.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
+        self.modele_combo.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
+        self.annee_combo.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
+
+        # Bouton reset
         tk.Button(
             search,
-            text="Rechercher",
-            bg="#2c3e50",
+            text="🔄",
+            bg="#e74c3c",
             fg="white",
             font=("Arial", 11, "bold"),
             padx=20,
-            command=self.rechercher
-        ).grid(row=1, column=3, padx=20)
+            command=self.reset_filters
+        ).grid(row=1, column=5, padx=10)
 
-        style = ttk.Style()
-        style.theme_use("default")
-
-        # ================= AJOUT =================
+        # Bouton ajouter
         tk.Button(
             search,
             text="Ajouter",
@@ -80,29 +86,6 @@ class ListeVehiculeView(tk.Frame):
             padx=20,
             command=self.ouvrir_form_ajout
         ).grid(row=1, column=4, padx=10)
-        
-        # ===== HEADER =====
-        style.configure(
-            "Treeview.Heading",
-            background="#bdc3c7",
-            foreground="black",
-            font=("Arial", 12, "bold")
-        )
-
-        # ===== TABLE =====
-        style.configure(
-            "Treeview",
-            background="white",
-            foreground="black",
-            rowheight=28,
-            fieldbackground="white"
-        )
-
-        style.map(
-            "Treeview",
-            background=[("selected", "#3498db")],
-            foreground=[("selected", "white")]
-        )
 
         # ================= TABLE =================
         table_card = tk.Frame(main_frame, bg="white")
@@ -118,34 +101,97 @@ class ListeVehiculeView(tk.Frame):
 
         self.tree.pack(fill="both", expand=True, padx=20, pady=20)
 
-        table_card.configure(bg="white", bd=1, relief="solid")
-        # events
         self.tree.bind("<Button-1>", self.on_click_tree)
 
-        self.charger()
+        # ================= DATA SOURCE =================
+        self.all_vehicules = charger_vehicules()
+        self.init_combobox_values()
+        self.apply_filter()
 
-    # ================= LOAD =================
+    # ================= LOAD TREE =================
     def charger(self):
-
         self.tree.delete(*self.tree.get_children())
 
-        data = charger_vehicules()
-
-        for row in data:
-            vehicule_id = row[0]
-            immatriculation = row[1]
-            type = row[2]
-            proprietaire = row[3]
-            marque = row[4]
-            modele = row[5]
-            annee = row[6]
+        for row in self.all_vehicules:
             self.tree.insert(
                 "",
                 "end",
-                values=(immatriculation, type, proprietaire, marque, modele, annee, "🗑", vehicule_id)
+                values=(row[1], row[2], row[3], row[4], row[5], row[6], "🗑", row[0])
             )
 
-    # ================= CLICK =================
+    # ================= FILTER =================
+    def apply_filter(self):
+
+        marque = self.marque_combo.get().lower()
+        modele = self.modele_combo.get().lower()
+        annee = self.annee_combo.get().lower()
+
+        self.tree.delete(*self.tree.get_children())
+
+        for row in self.all_vehicules:
+
+            if (
+                (not marque or marque in str(row[4]).lower()) and
+                (not modele or modele in str(row[5]).lower()) and
+                (not annee or annee in str(row[6]).lower())
+            ):
+                self.tree.insert(
+                    "",
+                    "end",
+                    values=(row[1], row[2], row[3], row[4], row[5], row[6], "🗑", row[0])
+                )
+
+    # ================= RESET =================
+    def reset_filters(self):
+        self.marque_combo.set("")
+        self.modele_combo.set("")
+        self.annee_combo.set("")
+        self.apply_filter()
+
+    # ================= INIT COMBO =================
+    def init_combobox_values(self):
+
+        marques = sorted(set(str(v[4]) for v in self.all_vehicules))
+        modeles = sorted(set(str(v[5]) for v in self.all_vehicules))
+        annees = sorted(set(str(v[6]) for v in self.all_vehicules))
+
+        self.marque_combo["values"] = marques
+        self.modele_combo["values"] = modeles
+        self.annee_combo["values"] = annees
+
+    # ================= DELETE =================
+    def supprimer_vehicule(self, vehicule_id):
+
+        if messagebox.askyesno("Confirmation", "Supprimer ce véhicule ?"):
+            supprimer_vehicule_db(vehicule_id)
+            messagebox.showinfo("Succès", "Véhicule supprimé avec succès")
+            self.all_vehicules = charger_vehicules()
+            self.init_combobox_values()
+            self.apply_filter()
+
+    # ================= DETAIL =================
+    def ouvrir_detail(self, vehicule_id, immatriculation):
+        from ui.detail_vehicule_view import DetailVehiculeView
+
+        top = tk.Toplevel(self)
+        DetailVehiculeView(top, vehicule_id, immatriculation)
+
+    # ================= AJOUT =================
+    def ouvrir_form_ajout(self):
+
+        top = tk.Toplevel(self)
+        top.title("Ajouter un véhicule")
+        top.geometry("500x400")
+
+        AjoutVehiculeView(top, refresh_callback=self.reload_data)
+
+    # ================= REFRESH GLOBAL =================
+    def reload_data(self):
+        self.all_vehicules = charger_vehicules()
+        self.init_combobox_values()
+        self.apply_filter()
+
+    # ================= CLICK TREE =================
     def on_click_tree(self, event):
 
         region = self.tree.identify("region", event.x, event.y)
@@ -160,63 +206,10 @@ class ListeVehiculeView(tk.Frame):
 
         values = self.tree.item(item, "values")
         vehicule_id = values[7]
-        imm = values[0]
+        print(f"Clicked on column {column} for vehicule ID {vehicule_id}")
 
-        if column == "#1":  # Details
-            self.ouvrir_detail(vehicule_id, imm)
+        if column == "#1":
+            self.ouvrir_detail(vehicule_id, values[0])
 
-        elif column == "#7":  # Supprimer
-            self.supprimer_vehicule(vehicule_id, item)
-
-    # ================= DELETE =================
-    def supprimer_vehicule(self, vehicule_id, item):
-
-        if messagebox.askyesno("Confirmation", "Supprimer ce véhicule ?"):
-            supprimer_vehicule_db(vehicule_id)
-            self.tree.delete(item)
-            messagebox.showinfo("Succès", "Véhicule supprimé avec succès")
-            self.refresh_table()
-
-    # ================= DETAIL =================
-    def ouvrir_detail(self, vehicule_id, immatriculation):
-
-        from ui.detail_vehicule_view import DetailVehiculeView
-
-        top = tk.Toplevel(self)
-        DetailVehiculeView(top, vehicule_id, immatriculation)
-
-    # ================= AJOUT =================
-    def ouvrir_form_ajout(self):
-
-        top = tk.Toplevel(self)
-        top.title("Ajouter un membre")
-        top.geometry("500x400")
-
-        AjoutVehiculeView(top, refresh_callback=self.refresh_table)
-
-
-    # ================= REFRESH =================
-    def refresh_table(self):
-        self.charger()
-
-    # ============================= # RECHERCHE # ============================= 
-    def rechercher(self): 
-        marque_v = self.marque_combo.get() 
-        modele_v = self.modele_combo.get() 
-        annee_v = self.annee_combo.get() 
-        # récupérer tous les items affichés 
-        items = self.tree.get_children() 
-        for item in items: 
-            values = self.tree.item(item)["values"] 
-            tags = self.tree.item(item)["tags"] 
-            nom_tree = str(values[0]) 
-            marque_tree = str(values[3]) 
-            modele_tree = str(values[4]) 
-            annee_tree = str(values[5]) 
-            # Comparer critères (ignorer champs vides) 
-            if ((not marque_v or marque_v == marque_tree) and (not modele_v or modele_v == modele_tree) and (not annee_v or annee_v == annee_tree)): 
-                # supprimer ligne 
-                self.tree.delete(item) 
-                # remettre en première position 
-                self.tree.insert("", 0, values=values,tags=tags) 
-                break
+        elif column == "#7":
+            self.supprimer_vehicule(vehicule_id)

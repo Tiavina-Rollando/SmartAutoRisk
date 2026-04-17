@@ -130,22 +130,51 @@ def get_accidents_vehicule(vehicule_id):
 # Suppression
 # ==============================
 def supprimer_vehicule(vehicule_id):
-    """
-    Supprime un véhicule de la base à partir de son ID
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
+    from database.models.base import get_session
+    from database.models.vehicule import Vehicule
+    from database.models.historique_frais import HistoriqueFrais
+    from database.models.accident_vehicule import AccidentVehicule
+    from database.models.historique_niveau_risk import HistoriqueNiveauRisk
 
-    # Supprimer d'abord les éventuels liens avec les accidents
-    cursor.execute("DELETE FROM accident_vehicules WHERE vehicule_id = %s", (vehicule_id,))
+    session = get_session()
 
-    # Supprimer le véhicule
-    cursor.execute("DELETE FROM vehicules WHERE id = %s", (vehicule_id,))
+    try:
+        vehicule_id = int(vehicule_id)
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        # 1. supprimer accidents liés
+        session.query(AccidentVehicule)\
+            .filter_by(vehicule_id=vehicule_id)\
+            .delete()
 
+        # 2. récupérer niveaux de risque
+        risques = session.query(HistoriqueNiveauRisk)\
+            .filter_by(vehicule_id=vehicule_id)\
+            .all()
+
+        for risque in risques:
+            # 3. supprimer frais liés à chaque risque
+            session.query(HistoriqueFrais)\
+                .filter_by(historique_niveau_risk_id=risque.id)\
+                .delete()
+
+        # 4. supprimer niveaux de risque
+        session.query(HistoriqueNiveauRisk)\
+            .filter_by(vehicule_id=vehicule_id)\
+            .delete()
+
+        # 5. supprimer véhicule
+        session.query(Vehicule)\
+            .filter_by(id=vehicule_id)\
+            .delete()
+
+        session.commit()
+
+    except Exception as e:
+        session.rollback()
+        print("Erreur suppression :", e)
+
+    finally:
+        session.close()
 
 # ==============================
 # Ajout
