@@ -148,6 +148,27 @@ class DetailVehiculeView:
         return data
     
     # =====================================================
+    # UTILS
+    # =====================================================
+
+    def int_to_mois(self, mois_int):
+        mois_dict = {
+            1: "Jan",
+            2: "Fev",
+            3: "Mar",
+            4: "Avr",
+            5: "Mai",
+            6: "Juin",
+            7: "Juil",
+            8: "Aout",
+            9: "Sep",
+            10: "Oct",
+            11: "Nov",
+            12: "Dec"
+        }
+        return mois_dict.get(mois_int, "")
+    
+    # =====================================================
     # GRAPH 1 — PRIX ASSURANCE
     # =====================================================
     def create_assurance_card(self, parent, data):
@@ -161,10 +182,9 @@ class DetailVehiculeView:
                  fg="#2e6de6",
                  bg="white").pack(pady=10)
 
-        mois = ["Jan", "Fev", "Mar", "Avr", "Mai", "Juin",
-                "Juil", "Aout", "Sep", "Oct", "Nov", "Dec"]
 
         prices = data.get("frais", [])
+        mois = [self.int_to_mois(f["mois"]) for f in prices] if prices else [""] * 12
         prix = [f["montant"] for f in prices] if prices else [0] * 12
 
         fig = Figure(figsize=(4.5, 4.5))
@@ -233,10 +253,10 @@ class DetailVehiculeView:
                  fg="#2e6de6",
                  bg="white").pack(pady=8)
 
-        annees = ["2019", "2020", "2021", "2022", "2023", "2024","2025","2026","2027","2028","2029","2030"]
         risques = data.get("risques", [])
-
+        mois = [self.int_to_mois(r["mois"]) for r in risques] if risques else [""] * 12
         risque_score = [r["niveau"] for r in risques]
+
 
         if not risque_score:
             risque_score = [0] * 12
@@ -245,7 +265,7 @@ class DetailVehiculeView:
         ax = fig.add_subplot(111)
 
         # ✅ BAR CHART
-        ax.bar(annees, risque_score)
+        ax.bar(mois, risque_score)
 
         # ✅ Y classification
         ax.set_yticks([1, 2, 3])
