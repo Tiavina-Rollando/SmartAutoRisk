@@ -198,7 +198,7 @@ class Prediction(tk.Frame):
 
     def _center_card(self, parent):
         frame = ttk.Frame(parent, style="Card.TFrame")
-        frame.place(relx=0.5, rely=0.5, anchor="center", width=520)
+        frame.place(relx=0.5, rely=0.5, anchor="center", width=650)
         return frame
 
 

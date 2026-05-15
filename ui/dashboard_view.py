@@ -21,7 +21,7 @@ class Dashboard(tk.Frame):
         style.configure("Card.TFrame", background="white")
         style.configure("Title.TLabel", font=("Segoe UI", 16, "bold"))
         style.configure("Result.TLabel", font=("Segoe UI", 14, "bold"), foreground="#2c3e50")
-        style.configure("Accent.TButton", font=("Segoe UI", 11, "bold"))
+        style.configure("Accent.TButton", font=("Segoe UI", 14, "bold"))
 
         # ================= HEADER =================
         header = tk.Frame(self, bg="#2c3e50", height=60)
@@ -43,6 +43,21 @@ class Dashboard(tk.Frame):
         card_table = ttk.Frame(container, style="Card.TFrame", padding=15)
         card_table.pack(side="left", fill="both", expand=True, padx=10)
 
+        style = ttk.Style()
+
+        # Police des lignes du tableau
+        style.configure(
+            "Treeview",
+            font=("Arial", 14),   # taille du texte des cellules
+            rowheight=30          # hauteur des lignes
+        )
+
+        # Police des en-têtes
+        style.configure(
+            "Treeview.Heading",
+            font=("Arial", 16, "bold")
+        )
+        
         ttk.Label(card_table, text="Liste des Propriétaires", style="Title.TLabel").pack(anchor="w", pady=10)
 
         columns = ("Nom", "Genre", "Nb Véhicules", "Profil", "Fréquence", "Dernier Paiement", "Taux annuel")

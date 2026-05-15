@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 import locale
+from tkinter import font
 
 import database.models.all_models as models
 
@@ -35,7 +36,7 @@ class App:
             text="Menu",
             bg="#2c3e50",
             fg="white",
-            font=("Arial", 20, "bold")
+            font=("Arial", 30, "bold")
         ).pack(pady=20)
 
         # ================= DATE DANS SIDEBAR =================
@@ -44,7 +45,7 @@ class App:
             text="",
             bg="#2c3e50",
             fg="#ecf0f1",
-            font=("Arial", 11, "bold")
+            font=("Arial", 14, "bold")
         )
         self.date_label.pack(pady=10)
 
@@ -100,7 +101,7 @@ class App:
                 text=text,
                 bg="#34495e",
                 fg="white",
-                font=("Arial", 12),
+                font=("Arial", 16),
                 relief="flat",
                 width=20,
                 height=2,
@@ -133,5 +134,46 @@ class App:
 if __name__ == "__main__":
 
     root = tk.Tk()
+    # ================= FONTES GLOBALES =================
+
+    default_font = ("Arial", 14)
+
+    # widgets tkinter classiques
+    root.option_add("*Font", default_font)
+
+    style = ttk.Style()
+
+    # ttk widgets
+    style.configure(".", font=default_font)
+
+    # Treeview
+    style.configure(
+        "Treeview",
+        font=("Arial", 14),
+        rowheight=32
+    )
+
+    style.configure(
+        "Treeview.Heading",
+        font=("Arial", 16, "bold")
+    )
+
+    # Boutons
+    style.configure(
+        "TButton",
+        font=("Arial", 14, "bold")
+    )
+
+    # Combobox
+    style.configure(
+        "TCombobox",
+        font=("Arial", 14)
+    )
+
+    # LabelFrame
+    style.configure(
+        "TLabelframe.Label",
+        font=("Arial", 16, "bold")
+    )
     app = App(root)
     root.mainloop()

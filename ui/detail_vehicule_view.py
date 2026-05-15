@@ -60,7 +60,7 @@ class DetailVehiculeView:
             command=root.destroy,
             bg="#2e6de6",
             fg="white",
-            font=("Segoe UI", 10, "bold"),
+            font=("Segoe UI", 14, "bold"),
             padx=15,
             pady=6,
             relief="flat",
@@ -244,7 +244,7 @@ class DetailVehiculeView:
             text=profil,
             bg=badge_color,
             fg="white",
-            font=("Segoe UI", 10, "bold"),
+            font=("Segoe UI", 14, "bold"),
             padx=12,
             pady=4
         )
@@ -277,7 +277,7 @@ class DetailVehiculeView:
             tk.Label(
                 container,
                 text=value,
-                font=("Segoe UI", 10),
+                font=("Segoe UI", 14),
                 bg="white",
                 anchor="w"
             ).grid(row=i, column=1, sticky="w", pady=3)
@@ -308,7 +308,7 @@ class DetailVehiculeView:
             tk.Label(
                 container,
                 text=label + " :",
-                font=("Segoe UI", 10, "bold"),
+                font=("Segoe UI", 14, "bold"),
                 bg="white",
                 width=15,
                 anchor="w"
@@ -317,7 +317,7 @@ class DetailVehiculeView:
             tk.Label(
                 container,
                 text=value,
-                font=("Segoe UI", 10),
+                font=("Segoe UI", 14),
                 bg="white",
                 anchor="w"
             ).grid(row=i, column=1, sticky="w", pady=2)
@@ -335,7 +335,7 @@ class DetailVehiculeView:
         table.pack(fill="both", expand=True)
 
         for i, h in enumerate(headers):
-            tk.Label(table, text=h, font=("Segoe UI", 9, "bold"), bg="white").grid(row=0, column=i, padx=5)
+            tk.Label(table, text=h, font=("Segoe UI", 14, "bold"), bg="white").grid(row=0, column=i, padx=5)
 
         for r, a in enumerate(accidents):
             values = [
