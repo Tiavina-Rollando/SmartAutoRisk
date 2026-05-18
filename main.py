@@ -3,7 +3,7 @@ from tkinter import ttk
 from datetime import datetime
 import locale
 from tkinter import font
-
+from PIL import Image, ImageTk
 import database.models.all_models as models
 
 # ===== IMPORT TES PAGES =====
@@ -30,6 +30,18 @@ class App:
         # ---------- SIDEBAR ----------
         self.menu_frame = tk.Frame(self.main_frame, bg="#2c3e50", width=220)
         self.menu_frame.pack(side="left", fill="y")
+        
+        # ---------- LOGO ----------
+        image = Image.open('assets/ISPM1.png')
+        image = image.resize((100,100))
+
+        self.logo = ImageTk.PhotoImage(image)
+        logo_label = tk.Label(
+            self.menu_frame,
+            image = self.logo,
+            bg = "#2c3e50"
+        )
+        logo_label.pack(pady=10)
 
         tk.Label(
             self.menu_frame,
