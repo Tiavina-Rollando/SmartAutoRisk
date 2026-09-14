@@ -1,0 +1,51 @@
+# Environnement virtuel Python
+
+.venv/
+venv/
+env/
+ENV/
+
+# Cache Python
+
+**pycache**/
+*.py[cod]
+*$py.class
+
+# Packages/installations Python
+
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# Fichiers de configuration sensibles
+
+.env
+.env.*
+!.env.example
+
+# IDE
+
+.vscode/
+.idea/
+
+# Fichiers temporaires
+
+*.log
+*.tmp
+*.bak
+
+# Base de données locale
+
+*.sqlite
+*.sqlite3
+
+# Fichiers générés
+
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
