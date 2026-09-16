@@ -4,6 +4,7 @@ from tkcalendar import DateEntry
 from datetime import datetime
 from controllers.vehicule_controller import ajouter_vehicule_db
 from controllers.proprietaire_controller import ajouter_client, charger_clients
+from controllers.contrat_controller import creer_contrat_vehicule
 from RNA_PROFIL.rna_profil import NeuralNetwork as ProfilNN
 from RNA_RISK.rna_risk import NeuralNetwork as RiskNN
 from RNA_RATE.rna_rate import NeuralNetwork as FeeNN
@@ -96,15 +97,12 @@ class AjoutVehiculeView(tk.Frame):
         )
         self.owner_card.grid(row=0, column=1, padx=20, pady=20, sticky="n")
 
-
         # Initialiser pour éviter les erreurs
         self.owner_map = {}
         self.owners = []
 
-
         # ================= BUILD FORMS =================
         self.build_vehicle_form()
-
         self.build_owner_section()
 
         # Charger les données
@@ -123,33 +121,44 @@ class AjoutVehiculeView(tk.Frame):
 
     # ================= VEHICLE FORM =================
     def build_vehicle_form(self):
-
         self.marque = self.entry(self.vehicle_card, "Marque", 0)
         self.modele = self.entry(self.vehicle_card, "Modèle", 1)
         self.puissance = self.entry(self.vehicle_card, "Puissance", 2)
         self.cylindre = self.entry(self.vehicle_card, "Cylindre", 3)
 
         tk.Label(self.vehicle_card, text="Type").grid(row=4, column=0, sticky="w", pady=5)
-        self.type = ttk.Combobox(self.vehicle_card, values=["Moto", "Voiture"], width=28)
+        self.type = ttk.Combobox(self.vehicle_card, values=["Moto", "Voiture"], width=28, state="readonly")
         self.type.grid(row=4, column=1)
+        self.type.current(1)
 
         self.annee = self.entry(self.vehicle_card, "Année", 5)
         self.valeur = self.entry(self.vehicle_card, "Valeur", 6)
 
         tk.Label(self.vehicle_card, text="Usage").grid(row=7, column=0, sticky="w", pady=5)
-        self.usage = ttk.Combobox(self.vehicle_card, values=["Personnel", "Transport"], width=28)
+        self.usage = ttk.Combobox(self.vehicle_card, values=["Personnel", "Transport"], width=28, state="readonly")
         self.usage.grid(row=7, column=1)
+        self.usage.current(0)
 
         tk.Label(self.vehicle_card, text="Places").grid(row=8, column=0, sticky="w", pady=5)
-        self.places = ttk.Combobox(self.vehicle_card, values=[2, 5, 7, 9, 15, 22, 30], width=28)
+        self.places = ttk.Combobox(self.vehicle_card, values=[2, 5, 7, 9, 15, 22, 30], width=28, state="readonly")
         self.places.grid(row=8, column=1)
+        self.places.current(1)
 
         self.immatriculation = self.entry(self.vehicle_card, "Immatriculation", 9)
 
+        # ➕ OFFRE ET MODALITÉ DE PAIEMENT
+        tk.Label(self.vehicle_card, text="Offre").grid(row=10, column=0, sticky="w", pady=5)
+        self.offre = ttk.Combobox(self.vehicle_card, values=["basic", "standard", "premium"], width=28, state="readonly")
+        self.offre.grid(row=10, column=1)
+        self.offre.current(0)
+
+        tk.Label(self.vehicle_card, text="Modalité Paiement").grid(row=11, column=0, sticky="w", pady=5)
+        self.modalite = ttk.Combobox(self.vehicle_card, values=["mensuel", "semestriel", "trimestriel", "annuel"], width=28, state="readonly")
+        self.modalite.grid(row=11, column=1)
+        self.modalite.current(2)
+
     # ================= OWNER SECTION =================
     def build_owner_section(self):
-
-        # existing owner
         self.owner_select_frame = tk.Frame(self.owner_card)
         self.owner_select_frame.grid(row=0, column=0, columnspan=2, pady=10)
 
@@ -162,10 +171,8 @@ class AjoutVehiculeView(tk.Frame):
             width=30
         )
         self.owner_combo.grid(row=0, column=1, padx=10)
-
         self.owner_combo.bind("<KeyRelease>", self.filter_owners)
 
-        # switch
         self.is_new_owner = tk.BooleanVar(value=False)
 
         tk.Checkbutton(
@@ -175,7 +182,6 @@ class AjoutVehiculeView(tk.Frame):
             command=self.toggle_owner_mode
         ).grid(row=1, column=0, columnspan=2, pady=10)
 
-        # new owner
         self.new_owner_frame = tk.Frame(self.owner_card)
         self.new_owner_frame.grid(row=2, column=0, columnspan=2, pady=10)
 
@@ -184,7 +190,6 @@ class AjoutVehiculeView(tk.Frame):
 
     # ================= OWNER FORM =================
     def build_owner_form(self):
-
         self.nom = self.entry(self.new_owner_frame, "Nom", 0)
         self.prenom = self.entry(self.new_owner_frame, "Prénom", 1)
         tk.Label(self.new_owner_frame, text="Date permis").grid(row=2, column=0, sticky="w", pady=5)
@@ -208,9 +213,11 @@ class AjoutVehiculeView(tk.Frame):
             date_pattern="yyyy-mm-dd"
         )
         self.date_naissance.grid(row=3, column=1, pady=5)
+        
         tk.Label(self.new_owner_frame, text="Aptitude").grid(row=4, column=0)
-        self.aptitude = ttk.Combobox(self.new_owner_frame, values=["Réduite", "Normale"], width=28)
+        self.aptitude = ttk.Combobox(self.new_owner_frame, values=["Réduite", "Normale"], width=28, state="readonly")
         self.aptitude.grid(row=4, column=1)
+        self.aptitude.current(1)
 
         self.adresse = self.entry(self.new_owner_frame, "Adresse", 5)
         
@@ -228,8 +235,6 @@ class AjoutVehiculeView(tk.Frame):
             state="readonly"
         )
         self.sexe.grid(row=6, column=1)
-
-        # ✅ valeur par défaut = Homme (index 0)
         self.sexe.current(0)
 
     # ================= ENTRY =================
@@ -250,7 +255,6 @@ class AjoutVehiculeView(tk.Frame):
             self.new_owner_frame.grid_remove()
             self.owner_select_frame.grid()
 
-
     # ================= SAVE =================
     def save(self):
         data = {
@@ -264,10 +268,12 @@ class AjoutVehiculeView(tk.Frame):
             "valeur": self.valeur.get(),
             "immatriculation": self.immatriculation.get(),
             "annee": self.annee.get(),
+            "offre": self.offre.get(),
+            "modalite_paiement": self.modalite.get()
         }
 
+        # 1. Traitement du propriétaire
         if self.is_new_owner.get():
-
             owner = {
                 "nom": self.nom.get(),
                 "prenom": self.prenom.get(),
@@ -277,13 +283,14 @@ class AjoutVehiculeView(tk.Frame):
                 "sexe": self.sexe_map.get(self.sexe.get()),
                 "aptitude": self.aptitude.get()
             }
-            data["proprietaire_id"] = ajouter_client(owner["nom"], owner["prenom"], owner["naissance"], owner["permis"], owner["adresse"], owner["sexe"], owner["aptitude"])
+            data["proprietaire_id"] = ajouter_client(
+                owner["nom"], owner["prenom"], owner["naissance"], 
+                owner["permis"], owner["adresse"], owner["sexe"], owner["aptitude"]
+            )
             
             proprio = get_owner(data["proprietaire_id"])
             profil = self.calcul_profil(proprio)
-
             labelProfils = ["Prudent", "Normal", "Risqué"]
-
             textProf = labelProfils[profil]
 
             insert_profil(data["proprietaire_id"], datetime.now(), textProf, "RNA")
@@ -298,36 +305,55 @@ class AjoutVehiculeView(tk.Frame):
 
             data["proprietaire_id"] = owner_id
 
-        v_id = ajouter_vehicule_db(data["proprietaire_id"], data["marque"], data["modele"], data["puissance"], data["cylindre"], data["type"], data["nombre_place"], data["usage"], data["valeur"], data["immatriculation"], data["annee"])
-        
-        if self.refresh_callback:
-            self.refresh_callback()
-        
-        messagebox.showinfo("Succès", "Véhicule ajouté avec succès")    
-        
+        # 2. Insertion du véhicule basique dans la BDD
+        v_id = ajouter_vehicule_db(
+            data["proprietaire_id"], 
+            data["marque"], 
+            data["modele"], 
+            data["puissance"], 
+            data["cylindre"], 
+            data["type"], 
+            data["nombre_place"], 
+            data["usage"], 
+            data["valeur"], 
+            data["immatriculation"], 
+            data["annee"],
+            data["offre"],
+            data["modalite_paiement"]
+        )
+
         vehicle = get_vehicle(v_id)
-        
         saisons = get_all_seasons()
         
+        # 3. Calcul des risques par saison
         for saison in saisons:
             niveau_risk = self.calcul_risque(vehicle, saison)
-            
             labelNiveaux = ["Faible", "Moyen", "Élevé"]
-
             textNiv = labelNiveaux[niveau_risk]
-
             insert_risk(vehicle.id, saison.id, textNiv, "RNA", datetime.now(), "Calcul saisonnier")
         
+        # 4. Calcul et insertion des frais
         niveaux = get_niveau_risque(vehicle.id)
-
         for niveau in niveaux:
             frais = self.calcul_frais(niveau, 0)
             frais = round(frais, 2) * 1000
             insert_frais(frais, niveau.id)
 
+        # 5. Création du contrat et du PDF (une fois les frais disponibles)
+        creer_contrat_vehicule(
+            vehicule_id=v_id,
+            offre=data["offre"],
+            modalite_paiement=data["modalite_paiement"]
+        )
+
+        # 6. Notification et rafraîchissement
+        if self.refresh_callback:
+            self.refresh_callback()
+        
+        messagebox.showinfo("Succès", "Véhicule et contrat ajoutés avec succès !")
+
     # ================= LOAD OWNERS =================
     def load_owners(self):
-   
         self.owners = charger_clients()
         print("Liste des propriétaires :", self.owners)
         self.owner_map = {f"{o[1]} {o[2]}": o[0] for o in self.owners}
@@ -342,9 +368,7 @@ class AjoutVehiculeView(tk.Frame):
         ]
 
     # ================= IA =================
-
-    
-    def calcul_profil(self,owner):
+    def calcul_profil(self, owner):
         age = 2026 - int(owner.date_naissance.year)
         permis = 2026 - int(owner.date_permis.year)
         sexe = int(owner.sexe)
@@ -360,12 +384,21 @@ class AjoutVehiculeView(tk.Frame):
         res = profil_model.predict(x)
         return res
 
-
-    def calcul_risque(self,vehicule,saison):
+    def calcul_risque(self, vehicule, saison):
         saison_type = 1 if saison.type == "Sec" else 0
         saison_periode = 0 if saison.periode == "Calme" else 1 if saison.periode == "Fête" else 2
         v_type = 1 if vehicule.type == "Voiture" else 0
-        profilProprio = 0 if vehicule.proprietaire.profils[0].profil == "Prudent" else 1 if vehicule.proprietaire.profils[0].profil == "Normal" else 2
+        
+        profil_nom = "Normal"
+        if hasattr(vehicule.proprietaire, 'profils') and vehicule.proprietaire.profils:
+            profil_nom = vehicule.proprietaire.profils[0].profil
+
+        if profil_nom == "Prudent":
+            profilProprio = 0
+        elif profil_nom == "Normal":
+            profilProprio = 1
+        else:
+            profilProprio = 2
         
         x = [
             profilProprio / 2,
@@ -380,7 +413,7 @@ class AjoutVehiculeView(tk.Frame):
 
         res = risque_model.predict(x)
         return res
-       
+        
     def calcul_frais(self, niveau, tarif):
         niv_risk = 0 if niveau.niveau_risk == "Faible" else 1 if niveau.niveau_risk == "Moyen" else 2
         risque = niv_risk / 2

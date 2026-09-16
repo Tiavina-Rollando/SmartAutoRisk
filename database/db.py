@@ -6,5 +6,5 @@ def get_connection():
         user="root",
         password="",
         database="smartautorisk",
-        port=3307
+        port=3306
     )

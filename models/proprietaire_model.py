@@ -23,7 +23,7 @@ def add_client(nom, prenom, naissance, permis, adresse, sexe, aptitude):
 
     conn.commit()
 
-    new_id = cursor.lastrowid  # ✅ récupérer AVANT fermeture
+    new_id = cursor.lastrowid  # récupérer AVANT fermeture
 
     conn.close()
 

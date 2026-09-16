@@ -5,6 +5,8 @@ from database.models.vehicule import Vehicule
 from database.models.saison import Saison
 from database.models.historique_niveau_risk import HistoriqueNiveauRisk
 from sqlalchemy.orm import joinedload
+from database.models.contrat import Contrat  # Optionnel : seulement si besoin de manipuler la classe Contrat directement
+from sqlalchemy.orm import joinedload, selectinload
 
 from contextlib import contextmanager
 
@@ -37,10 +39,13 @@ from sqlalchemy.orm import joinedload
 def get_vehicle(vehicle_id):
     session = get_session()
 
-
     vehicle = (
         session.query(Vehicule)
         .options(
+            # --- Chargement de la relation Contrats pour la facture ---
+            selectinload(Vehicule.contrats),
+
+            # --- Tes chargements existants ---
             joinedload(Vehicule.proprietaire)
                 .joinedload(Proprietaire.profils),
 

@@ -10,6 +10,8 @@ from ui.dashboard_view import Dashboard
 from ui.liste_vehicule_view import ListeVehiculeView as Vehicules
 from ui.accident_view import Accidents
 from ui.prediction_view import Prediction
+from ui.accident_view import Accidents
+
 
 
 # ================= APP PRINCIPALE =================
@@ -55,7 +57,7 @@ class App:
         # ---------- PAGES ----------
         self.frames = {}
 
-        for Page in (Dashboard, Vehicules, Prediction):
+        for Page in (Dashboard,Accidents, Vehicules, Prediction):
             frame = Page(self.container)
             self.frames[Page] = frame
             frame.place(relwidth=1, relheight=1)
@@ -90,7 +92,8 @@ class App:
         menu_buttons = [
             ("Tableau de bord", Dashboard),
             ("Véhicules", Vehicules),
-            ("Prédiction", Prediction)
+            ("Prédiction", Prediction),
+            ("Accidents", Accidents)
         ]
 
         for text, page in menu_buttons:

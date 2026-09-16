@@ -1,9 +1,11 @@
 import tkinter as tk
+from tkinter import messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 from controllers.vehicule_controller import *
 from services.recuperation import get_vehicle
+from ui.factures_view import FacturesView  # Import de la vue Factures
 
 
 # =====================================================
@@ -35,6 +37,7 @@ class DetailVehiculeView:
     def __init__(self, root, vehicule_id, immatriculation):
 
         self.root = root
+        self.vehicule_id = vehicule_id
         self.immatriculation = immatriculation
 
         self.data = self.charger_detail(vehicule_id)
@@ -54,6 +57,7 @@ class DetailVehiculeView:
             bg="#f2f4f8"
         ).pack(side="left", padx=20, pady=10)
 
+        # Bouton Retour (À droite)
         tk.Button(
             header,
             text="← Retour",
@@ -67,7 +71,23 @@ class DetailVehiculeView:
             cursor="hand2",
             activebackground="#1f4fbf",
             activeforeground="white"
-        ).pack(side="right", padx=20, pady=5)
+        ).pack(side="right", padx=(5, 20), pady=10)
+
+        # BOUTON PAIEMENT EN ROUGE
+        tk.Button(
+            header,
+            text="💳 Paiement / Factures",
+            command=self.ouvrir_factures,
+            bg="#e74c3c",
+            fg="white",
+            font=("Segoe UI", 10, "bold"),
+            padx=15,
+            pady=6,
+            relief="flat",
+            cursor="hand2",
+            activebackground="#c0392b",
+            activeforeground="white"
+        ).pack(side="right", padx=5, pady=10)
 
         # ================= BODY GRID =================
         body = tk.Frame(root, bg="#f2f4f8")
@@ -99,17 +119,32 @@ class DetailVehiculeView:
         # self.create_accident_card()
 
     # =====================================================
+    # ACTION PAIEMENT
+    # =====================================================
+    def ouvrir_factures(self):
+        """Ouvre la fenêtre des factures associées au véhicule."""
+        if self.vehicule_id:
+            FacturesView(self.root, vehicule_id=self.vehicule_id)
+        else:
+            messagebox.showwarning(
+                "Information",
+                "Impossible d'ouvrir les factures : identifiant du véhicule introuvable.",
+                parent=self.root
+            )
+    # =====================================================
     # DATA
     # =====================================================
     def charger_detail(self, vehicule_id):
         vehicule = get_vehicle(vehicule_id)
 
         profil_obj = next(iter(vehicule.proprietaire.profils), None)
+        contrat_obj = getattr(vehicule, 'contrat', None) or (vehicule.contrats[0] if getattr(vehicule, 'contrats', None) else None)
 
         return {
+            "contrat_id": contrat_obj.id if contrat_obj else None,
             "marque": vehicule.marque,
             "modele": vehicule.modele,
-            "cylindre": vehicule.cylindre*1000,
+            "cylindre": vehicule.cylindre * 1000,
             "puissance": vehicule.puissance,
             "type": vehicule.type,
             "nombre_place": vehicule.nombre_place,
@@ -209,7 +244,7 @@ class DetailVehiculeView:
         ax = fig.add_subplot(111)
 
         ax.bar(mois, scores)
-        # ✅ Y classification 
+        # Y classification 
         ax.set_yticks([1, 2, 3]) 
         ax.set_yticklabels(["Faible", "Moyen", "Élevé"], fontweight="bold")
 

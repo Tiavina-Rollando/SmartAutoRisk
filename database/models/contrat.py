@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Date, Enum, String, ForeignKey
+from sqlalchemy import Column, BigInteger, Date, Enum, String, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from .base import Base
 
@@ -9,7 +9,11 @@ class Contrat(Base):
     vehicule_id = Column(BigInteger, ForeignKey("vehicules.id"))
     date = Column(Date, nullable=False)
     path = Column(String(255), nullable=False)
-    tarif = Column(Enum("simple", "prenium", name="tarif_enum"), default="simple")
+    
+    # ✅ Nouveau champ montant
+    montant = Column(Numeric(12, 2), nullable=False, default=0.00)
+
+    tarif = Column(Enum("basic", "standard", "premium", name="tarif_enum"), default="basic")
     type_paiement = Column(
         Enum("annuel", "semestriel", "trimestriel", "mensuel", name="paiement_enum"),
         default="annuel"
