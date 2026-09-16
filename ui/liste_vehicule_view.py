@@ -11,18 +11,35 @@ class ListeVehiculeView(tk.Frame):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.configure(bg="#f2f4f8")
 
-        # ================= STYLE =================
+        # ================= STYLES TTK =================
         style = ttk.Style()
         style.theme_use("clam")
 
-        style.configure("Card.TFrame", background="white")
-        style.configure("Title.TLabel", font=("Segoe UI", 16, "bold"))
-        style.configure("Result.TLabel", font=("Segoe UI", 14, "bold"), foreground="#2c3e50")
-        style.configure("Accent.TButton", font=("Segoe UI", 11, "bold"))
+        # Style de l'en-tête du tableau
+        style.configure(
+            "Treeview.Heading",
+            font=("Segoe UI", 11, "bold"),
+            background="#2c3e50",
+            foreground="white",
+            relief="flat"
+        )
+        style.map("Treeview.Heading", background=[('active', '#34495e')])
+
+        # Style du corps du tableau (lignes plus hautes et texte plus grand)
+        style.configure(
+            "Treeview",
+            font=("Segoe UI", 11),
+            rowheight=32,
+            background="white",
+            fieldbackground="white",
+            borderwidth=0
+        )
+        style.map("Treeview", background=[('selected', '#e8f0fe')], foreground=[('selected', '#1a73e8')])
 
         # ================= HEADER =================
-        header = tk.Frame(self, bg="#2c3e50", height=60)
+        header = tk.Frame(self, bg="#2c3e50")
         header.pack(fill="x")
 
         tk.Label(
@@ -30,78 +47,90 @@ class ListeVehiculeView(tk.Frame):
             text="SMART AUTORISK - VÉHICULES",
             bg="#2c3e50",
             fg="white",
-            font=("Segoe UI", 16, "bold")
-        ).pack(pady=15)
+            font=("Segoe UI", 18, "bold")
+        ).pack(pady=18)
 
-        # ================= MAIN =================
-        main_frame = tk.Frame(self, bg="#ecf0f1")
-        main_frame.pack(fill="both", expand=True)
+        # ================= MAIN CONTAINER =================
+        main_frame = tk.Frame(self, bg="#f2f4f8")
+        main_frame.pack(fill="both", expand=True, padx=25, pady=20)
 
-        # ================= SEARCH =================
-        card = tk.Frame(main_frame, bg="white", height=120)
-        card.pack(fill="x", padx=40)
-        card.pack_propagate(False)
+        # ================= CARD RECHERCHE =================
+        card_search = tk.Frame(main_frame, bg="white", bd=1, relief="solid")
+        card_search.pack(fill="x", pady=(0, 20))
 
-        search = tk.Frame(card, bg="white")
-        search.pack(expand=True)
+        search_inner = tk.Frame(card_search, bg="white", padx=20, pady=15)
+        search_inner.pack(fill="x")
 
-        # Labels
-        tk.Label(search, text="Marque", bg="white").grid(row=0, column=0)
-        tk.Label(search, text="Modele", bg="white").grid(row=0, column=1)
-        tk.Label(search, text="Année", bg="white").grid(row=0, column=2)
+        # Labels et Comboboxes (Tailles augmentées)
+        tk.Label(search_inner, text="Marque", bg="white", font=("Segoe UI", 11, "bold")).grid(row=0, column=0, sticky="w", padx=10, pady=(0, 5))
+        tk.Label(search_inner, text="Modèle", bg="white", font=("Segoe UI", 11, "bold")).grid(row=0, column=1, sticky="w", padx=10, pady=(0, 5))
+        tk.Label(search_inner, text="Année", bg="white", font=("Segoe UI", 11, "bold")).grid(row=0, column=2, sticky="w", padx=10, pady=(0, 5))
 
-        # Combobox
-        self.marque_combo = ttk.Combobox(search, width=25)
-        self.marque_combo.grid(row=1, column=0, padx=20)
+        self.marque_combo = ttk.Combobox(search_inner, width=22, font=("Segoe UI", 11))
+        self.marque_combo.grid(row=1, column=0, padx=10, ipady=4)
 
-        self.modele_combo = ttk.Combobox(search, width=25)
-        self.modele_combo.grid(row=1, column=1, padx=20)
+        self.modele_combo = ttk.Combobox(search_inner, width=22, font=("Segoe UI", 11))
+        self.modele_combo.grid(row=1, column=1, padx=10, ipady=4)
 
-        self.annee_combo = ttk.Combobox(search, width=25)
-        self.annee_combo.grid(row=1, column=2, padx=20)
+        self.annee_combo = ttk.Combobox(search_inner, width=22, font=("Segoe UI", 11))
+        self.annee_combo.grid(row=1, column=2, padx=10, ipady=4)
 
-        # Events (un seul moteur)
+        # Events
         self.marque_combo.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
         self.modele_combo.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
         self.annee_combo.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
 
-        # Bouton reset
+        # Bouton Ajouter
         tk.Button(
-            search,
+            search_inner,
+            text="➕ Ajouter",
+            bg="#27ae60",
+            fg="white",
+            font=("Segoe UI", 11, "bold"),
+            padx=18,
+            pady=6,
+            relief="flat",
+            cursor="hand2",
+            activebackground="#219150",
+            activeforeground="white",
+            command=self.ouvrir_form_ajout
+        ).grid(row=1, column=3, padx=(20, 10))
+
+        # Bouton Réinitialiser
+        tk.Button(
+            search_inner,
             text="🔄",
             bg="#e74c3c",
             fg="white",
-            font=("Arial", 11, "bold"),
-            padx=20,
+            font=("Segoe UI", 11, "bold"),
+            padx=15,
+            pady=6,
+            relief="flat",
+            cursor="hand2",
+            activebackground="#c0392b",
+            activeforeground="white",
             command=self.reset_filters
-        ).grid(row=1, column=5, padx=10)
+        ).grid(row=1, column=4, padx=5)
 
-        # Bouton ajouter
-        tk.Button(
-            search,
-            text="Ajouter",
-            bg="#27ae60",
-            fg="white",
-            font=("Arial", 11, "bold"),
-            padx=20,
-            command=self.ouvrir_form_ajout
-        ).grid(row=1, column=4, padx=10)
-
-        # ================= TABLE =================
-        table_card = tk.Frame(main_frame, bg="white")
-        table_card.pack(fill="both", expand=True, padx=40, pady=20)
+        # ================= CARD TABLEAU =================
+        table_card = tk.Frame(main_frame, bg="white", bd=1, relief="solid")
+        table_card.pack(fill="both", expand=True)
 
         columns = ("Immatriculation", "Type", "Propriétaire", "Marque", "Modele", "Année", "Actions")
 
-        self.tree = ttk.Treeview(table_card, columns=columns, show="headings")
+        self.tree = ttk.Treeview(table_card, columns=columns, show="headings", selectmode="browse")
 
         for col in columns:
             self.tree.heading(col, text=col)
-            self.tree.column(col, anchor="center", width=120)
+            width = 90 if col == "Actions" else 150
+            self.tree.column(col, anchor="center", width=width)
 
-        self.tree.pack(fill="both", expand=True, padx=20, pady=20)
-
+        self.tree.pack(fill="both", expand=True, padx=15, pady=15)
         self.tree.bind("<Button-1>", self.on_click_tree)
+
+        # Configurer l'alternance de couleur des lignes
+        self.tree.tag_configure('oddrow', background='#f9fa00')
+        self.tree.tag_configure('evenrow', background='white')
 
         # ================= DATA SOURCE =================
         self.all_vehicules = charger_vehicules()
@@ -121,7 +150,6 @@ class ListeVehiculeView(tk.Frame):
 
     # ================= FILTER =================
     def apply_filter(self):
-
         marque = self.marque_combo.get().lower()
         modele = self.modele_combo.get().lower()
         annee = self.annee_combo.get().lower()
@@ -129,7 +157,6 @@ class ListeVehiculeView(tk.Frame):
         self.tree.delete(*self.tree.get_children())
 
         for row in self.all_vehicules:
-
             if (
                 (not marque or marque in str(row[4]).lower()) and
                 (not modele or modele in str(row[5]).lower()) and
@@ -150,10 +177,9 @@ class ListeVehiculeView(tk.Frame):
 
     # ================= INIT COMBO =================
     def init_combobox_values(self):
-
-        marques = sorted(set(str(v[4]) for v in self.all_vehicules))
-        modeles = sorted(set(str(v[5]) for v in self.all_vehicules))
-        annees = sorted(set(str(v[6]) for v in self.all_vehicules))
+        marques = sorted(set(str(v[4]) for v in self.all_vehicules if v[4]))
+        modeles = sorted(set(str(v[5]) for v in self.all_vehicules if v[5]))
+        annees = sorted(set(str(v[6]) for v in self.all_vehicules if v[6]))
 
         self.marque_combo["values"] = marques
         self.modele_combo["values"] = modeles
@@ -161,7 +187,6 @@ class ListeVehiculeView(tk.Frame):
 
     # ================= DELETE =================
     def supprimer_vehicule(self, vehicule_id):
-
         if messagebox.askyesno("Confirmation", "Supprimer ce véhicule ?"):
             supprimer_vehicule_db(vehicule_id)
             messagebox.showinfo("Succès", "Véhicule supprimé avec succès")
@@ -178,7 +203,6 @@ class ListeVehiculeView(tk.Frame):
 
     # ================= AJOUT =================
     def ouvrir_form_ajout(self):
-
         top = tk.Toplevel(self)
         top.title("Ajouter un véhicule")
         top.geometry("500x400")
@@ -193,7 +217,6 @@ class ListeVehiculeView(tk.Frame):
 
     # ================= CLICK TREE =================
     def on_click_tree(self, event):
-
         region = self.tree.identify("region", event.x, event.y)
         if region != "cell":
             return

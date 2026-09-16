@@ -9,8 +9,7 @@ class AccidentVehicule(Base):
     accident_id = Column(BigInteger, ForeignKey("accidents.id"))
     vehicule_id = Column(BigInteger, ForeignKey("vehicules.id"))
     degat = Column(Enum("faible", "moyen", "élévé", name="degat_enum"), default="faible")
-    responsabilite = Column(Boolean, nullable=False)
-    role = Column(Enum("fautif", "victime", "tiers", name="role_enum"), default="fautif")
+    responsabilite = Column(Boolean, nullable=False) 
     valeur = Column(BigInteger)
 
     accident = relationship("Accident", back_populates="vehicules")

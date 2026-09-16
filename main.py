@@ -68,7 +68,7 @@ class App:
         # ---------- PAGES ----------
         self.frames = {}
 
-        for Page in (Dashboard, Vehicules, Prediction):
+        for Page in (Dashboard, Vehicules, Accidents, Prediction):
             frame = Page(self.container)
             self.frames[Page] = frame
             frame.place(relwidth=1, relheight=1)
@@ -103,6 +103,7 @@ class App:
         menu_buttons = [
             ("Tableau de bord", Dashboard),
             ("Véhicules", Vehicules),
+            ("Accidents", Accidents),  # <-- Ajouté juste au-dessus de Prédiction
             ("Prédiction", Prediction)
         ]
 
