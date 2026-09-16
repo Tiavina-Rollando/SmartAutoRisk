@@ -4,6 +4,7 @@ from datetime import datetime
 from tkinter import ttk, messagebox
 from controllers.contrat_controller import (
     creer_nouveau_contrat,
+    get_montant_total_vehicule,
     recuperer_liste_vehicules
 )
 
@@ -222,24 +223,41 @@ class ContratView(tk.Toplevel):
             return
 
         vehicule_sel = self.vehicules_list[idx]
-        montant_val = self.entry_montant.get().strip()
+        vehicule_id = vehicule_sel['id']
 
-        if not montant_val.isdigit() or int(montant_val) <= 0:
-            messagebox.showerror("Erreur", "Veuillez entrer un montant valide.")
+        # 1. Récupération du montant total des frais sur 12 mois
+        montant_total = get_montant_total_vehicule(vehicule_id)
+
+        # Option A : Si vous souhaitez lire le montant saisi tout en autorisant un secours avec le montant total
+        montant_val = self.entry_montant.get().strip()
+        
+        if montant_val.isdigit() and int(montant_val) > 0:
+            montant_final = int(montant_val)
+        else:
+            # Si le champ est vide ou invalide, on prend le montant calculé
+            montant_final = int(montant_total)
+
+        # Vérification que le montant final est valide
+        if montant_final <= 0:
+            messagebox.showerror(
+                "Erreur", 
+                "Le montant doit être supérieur à 0 (aucun frais trouvé sur les 12 derniers mois)."
+            )
             return
 
         try:
+            # 2. Création du contrat avec le montant calculé / validé
             contrat_id, chemin_pdf = creer_nouveau_contrat(
-                vehicule_id=vehicule_sel['id'],
+                vehicule_id=vehicule_id,
                 data_vehicule=vehicule_sel,
-                montant=int(montant_val),
+                montant=montant_final,
                 tarif_formule=self.combo_tarif.get(),
                 type_paiement=self.combo_paiement.get()
             )
 
             messagebox.showinfo(
                 "Succès",
-                f"Contrat N°{contrat_id} créé avec succès !\nMontant : {int(montant_val):,} MGA".replace(",", " ")
+                f"Contrat N°{contrat_id} créé avec succès !\nMontant : {montant_final:,} MGA".replace(",", " ")
             )
             self.destroy()
 
