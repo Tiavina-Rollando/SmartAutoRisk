@@ -78,7 +78,8 @@ def creer_nouveau_paiement(contrat_id, plage_deb, commentaire="Paiement effectue
         frais=frais_montant,
         path="",
         statut=1,
-        commentaire=commentaire
+        commentaire=commentaire,
+        
     )
 
     # Génération du fichier PDF

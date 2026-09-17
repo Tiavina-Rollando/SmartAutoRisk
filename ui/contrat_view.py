@@ -17,13 +17,13 @@ class ContratView(tk.Toplevel):
         self.vehicule_id = vehicule_id
         self.data_vehicule = data_vehicule or {}
 
-        # Configuration de la fenêtre (Agrandie pour projection)
+        # Configuration de la fenêtre
         self.title("Souscription de Contrat d'Assurance")
         self.geometry("580x680")
         self.configure(bg="#F1F5F9")
         self.resizable(False, False)
 
-        # Style TTK pour grandes polices
+        # Style TTK
         self._init_styles()
 
         self.vehicules_list = recuperer_liste_vehicules()
@@ -34,26 +34,12 @@ class ContratView(tk.Toplevel):
         self.style = ttk.Style()
         self.style.theme_use("clam")
 
-        # Customisation des Combobox pour la présentation
         self.style.configure(
             "Large.TCombobox",
             font=("Segoe UI", 12),
             padding=6
         )
         self.option_add("*TCombobox*Listbox.font", ("Segoe UI", 12))
-
-    def extraction_montant_du_jour(self):
-        frais = self.data_vehicule.get("frais", [])
-        mois_actuel = datetime.now().month
-
-        for f in frais:
-            if f.get("mois") == mois_actuel:
-                return f.get("montant", 0)
-
-        if frais:
-            return frais[0].get("montant", 0)
-
-        return self.data_vehicule.get("montant_graphe", 0)
 
     def creer_widgets(self):
         # Header / Banner Supérieur
@@ -137,7 +123,7 @@ class ContratView(tk.Toplevel):
         self.combo_paiement.pack(fill="x", ipady=4, pady=(0, 20))
         self.combo_paiement.bind("<<ComboboxSelected>>", self.recalculer_montant_tarif)
 
-        # Separateur visuel
+        # Séparateur visuel
         tk.Frame(card, bg="#E2E8F0", height=2).pack(fill="x", pady=10)
 
         # 4. Montant Calculé (En évidence)
@@ -187,10 +173,21 @@ class ContratView(tk.Toplevel):
         )
         btn_valider.pack(fill="x")
 
+        # Calcul initial du montant
         self.recalculer_montant_tarif()
 
     def recalculer_montant_tarif(self, event=None):
-        montant_base = self.extraction_montant_du_jour()
+        """Calcule le montant basé sur le total des frais des 12 derniers mois du véhicule."""
+        idx = self.combo_vehicule.current()
+        if idx == -1:
+            return
+
+        vehicule_sel = self.vehicules_list[idx]
+        vehicule_id = vehicule_sel['id']
+
+        # 1. Récupération dynamique du montant total sur 12 mois
+        montant_base = get_montant_total_vehicule(vehicule_id) or 0
+
         tarif_choisi = self.combo_tarif.get()
         frequence_paiement = self.combo_paiement.get()
 
@@ -210,7 +207,7 @@ class ContratView(tk.Toplevel):
         diviseur = diviseurs.get(frequence_paiement, 1)
         montant_echeance = int(montant_annuel / diviseur)
 
-        # Déverrouillage temporaire pour réécriture
+        # Mise à jour du champ texte
         self.entry_montant.config(state="normal")
         self.entry_montant.delete(0, tk.END)
         self.entry_montant.insert(0, str(montant_echeance))
@@ -225,19 +222,13 @@ class ContratView(tk.Toplevel):
         vehicule_sel = self.vehicules_list[idx]
         vehicule_id = vehicule_sel['id']
 
-        # 1. Récupération du montant total des frais sur 12 mois
-        montant_total = get_montant_total_vehicule(vehicule_id)
-
-        # Option A : Si vous souhaitez lire le montant saisi tout en autorisant un secours avec le montant total
         montant_val = self.entry_montant.get().strip()
         
         if montant_val.isdigit() and int(montant_val) > 0:
             montant_final = int(montant_val)
         else:
-            # Si le champ est vide ou invalide, on prend le montant calculé
-            montant_final = int(montant_total)
+            montant_final = int(get_montant_total_vehicule(vehicule_id) or 0)
 
-        # Vérification que le montant final est valide
         if montant_final <= 0:
             messagebox.showerror(
                 "Erreur", 
@@ -246,7 +237,6 @@ class ContratView(tk.Toplevel):
             return
 
         try:
-            # 2. Création du contrat avec le montant calculé / validé
             contrat_id, chemin_pdf = creer_nouveau_contrat(
                 vehicule_id=vehicule_id,
                 data_vehicule=vehicule_sel,
